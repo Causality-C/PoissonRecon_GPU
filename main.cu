@@ -584,8 +584,8 @@ __host__ void pipelineBuildNodeArray(char *fileName,Point3D<float> &center,float
     long long *key=NULL;
     long long nByte = 1ll * sizeof(long long)*count;
     CHECK(cudaMalloc((long long **)&key, nByte));
-    dim3 grid=(32,32);
-    dim3 block=(32,32);
+    dim3 grid (32,32);
+    dim3 block (32,32);
     generateCode<<<grid,block>>>(samplePoints_d,key,count);
     cudaDeviceSynchronize();
 
@@ -594,12 +594,12 @@ __host__ void pipelineBuildNodeArray(char *fileName,Point3D<float> &center,float
     CHECK(cudaMemcpy(key_backup,key,nByte,cudaMemcpyDeviceToDevice));
 
     /**     Step 3: sort all sample points      */
-    thrust::device_ptr<long long> key_ptr=thrust::device_pointer_cast<long long>(key);
-    thrust::sort_by_key(key_ptr,key_ptr+count,samplePoints_d);
+    thrust::device_ptr<long long> key_ptr=thrust::device_pointer_cast(key);
+    thrust::sort_by_key(thrust::device,key_ptr,key_ptr+count,samplePoints_d);
     cudaDeviceSynchronize();
 
     key_ptr=thrust::device_pointer_cast<long long>(key_backup);
-    thrust::sort_by_key(key_ptr,key_ptr+count,sampleNormals_d);
+    thrust::sort_by_key(thrust::device, key_ptr,key_ptr+count,sampleNormals_d);
     cudaDeviceSynchronize();
 
     cudaFree(key_backup);
@@ -3245,17 +3245,9 @@ __host__ void insertTriangle(Point3D<float> *VertexBuffer,const int &allVexNums,
 }
 
 int main() {
-//    char fileName[]="/home/davidxu/horse.npts";
-//    char outName[]="/home/davidxu/horse.ply";
 
     char fileName[]="/workspace/bunny.points.ply";
     char outName[]="/workspace/bunny.ply";
-
-//    char fileName[]="/home/davidxu/eagle.points.ply";
-//    char outName[]="/home/davidxu/eagle.ply";
-
-//    char fileName[]="/home/davidxu/torso.points.ply";
-//    char outName[]="/home/davidxu/torso.ply";
 
     int NodeArrayCount_h[maxDepth_h+1];
     int BaseAddressArray[maxDepth_h+1];
@@ -4183,8 +4175,6 @@ int main() {
         insertTriangle(SubdivideVertexBuffer,SubdivideAllVexNums,
                        SubdivideTriangleBuffer,SubdivideAllTriNums,
                        mesh);
-
-//        printf("SubdivideAllVexNums:%d SubdivideAllTriNums:%d\n",SubdivideAllVexNums,SubdivideAllTriNums);
 
 
 
